@@ -1,6 +1,7 @@
 import heapq
 import pygame
 import numpy as np
+import pickle
 
 from graph import Node, Graph
 from grid import GridWorld
@@ -50,7 +51,7 @@ pygame.init()
 X_DIM = 20
 Y_DIM = 20
 VIEWING_RANGE = 2
-
+EPISODE_NUMBER= 49
 
 # Set the HEIGHT and WIDTH of the screen
 WINDOW_SIZE = [(WIDTH + MARGIN) * X_DIM + MARGIN,
@@ -119,13 +120,17 @@ if __name__ == "__main__":
     for i in range(len(Fire)):
         graph.cells[fireArray[i,1]][fireArray[i,0]] = -1
 
+    monteCarloFireMap = pickle.load(open('MCFMs300', "rb"))
+    monteCarloFireMapArray = np.array(monteCarloFireMap)
+    
     graph, queue, k_m = initDStarLite(graph, queue, s_start, s_goal, k_m)
 
     s_current = s_start
     pos_coords = stateNameToCoords(s_current)
 
     basicfont = pygame.font.SysFont('Comic Sans MS', 36)
-
+    
+    spaceCounter = 0
     # -------- Main Program Loop -----------
     while not done:
         for event in pygame.event.get():  # User did something
@@ -133,6 +138,12 @@ if __name__ == "__main__":
                 done = True  # Flag that we are done so we exit this loop
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 # print('space bar! call next action')
+                fireArray = np.nonzero(np.array(monteCarloFireMapArray[EPISODE_NUMBER][spaceCounter]))
+                for i in range(len(fireArray[0])):
+                    try:
+                        graph.cells[fireArray[1][i]][fireArray[0][i]] = -1
+                    except:
+                        print("coordinates are [{0}, {1}]".format(fireArray[i][1],fireArray[i][0]))
                 s_new, k_m = moveAndRescan(
                     graph, queue, s_current, VIEWING_RANGE, k_m)
                 if s_new == 'goal':
@@ -143,6 +154,7 @@ if __name__ == "__main__":
                     s_current = s_new
                     pos_coords = stateNameToCoords(s_current)
                     # print('got pos coords: ', pos_coords)
+                spaceCounter += 1
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # User clicks the mouse. Get the position
