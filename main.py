@@ -1,5 +1,6 @@
 import heapq
 import pygame
+import numpy as np
 
 from graph import Node, Graph
 from grid import GridWorld
@@ -46,9 +47,9 @@ grid[1][5] = 1
 # Initialize pygame
 pygame.init()
 
-X_DIM = 12
-Y_DIM = 12
-VIEWING_RANGE = 3
+X_DIM = 20
+Y_DIM = 20
+VIEWING_RANGE = 2
 
 
 # Set the HEIGHT and WIDTH of the screen
@@ -67,8 +68,8 @@ clock = pygame.time.Clock()
 
 if __name__ == "__main__":
     graph = GridWorld(X_DIM, Y_DIM)
-    s_start = 'x1y2'
-    s_goal = 'x5y4'
+    s_start = 'x8y0'
+    s_goal = 'x9y16'
     goal_coords = stateNameToCoords(s_goal)
 
     graph.setStart(s_start)
@@ -76,6 +77,47 @@ if __name__ == "__main__":
     k_m = 0
     s_last = s_start
     queue = []
+
+    # add static obstacles
+    Wall = [[6,0],
+            [6,1],
+            [6,2],
+            [6,3],
+            [6,4],
+            [6,5],
+            [10,0],
+            [10,1],
+            [10,2],
+            [10,3],
+            [10,4],
+            [10,5],
+            [6,14],
+            [7,14],
+            [8,14],
+            [9,14],
+            [10,14],
+            [11,14],
+            [12,14],
+            [13,14],
+            [15,14],
+            [16,14],
+            [17,14],
+            [18,14],
+            [19,14],
+            [17,9],
+            [17,10],
+            [17,11],
+            [17,12],
+            [17,13]]
+    wallArray = np.array(Wall)
+    for i in range(len(Wall)):
+        graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
+
+    # add evolving fire initial locations
+    Fire = [[1, 18], [7,11],[2,4]]
+    fireArray = np.array(Fire)
+    for i in range(len(Fire)):
+        graph.cells[fireArray[i,1]][fireArray[i,0]] = -1
 
     graph, queue, k_m = initDStarLite(graph, queue, s_start, s_goal, k_m)
 
