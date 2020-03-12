@@ -2,8 +2,8 @@ import heapq
 from utils import stateNameToCoords
 
 
-def topKey(queue):
-    queue.sort()
+def topKey(queue, graph, s_current):
+    queue = [(x[1]+heuristic_from_s(graph, x[2], s_current), x[1], x[2]) for x in queue]
     # print(queue)
     if len(queue) > 0:
         return queue[0][:2]
@@ -19,10 +19,11 @@ def heuristic_from_s(graph, id, s):
 
 
 def calculateKey(graph, id, s_current, k_m):
-    return (min(graph.graph[id].g, graph.graph[id].rhs) + heuristic_from_s(graph, id, s_current) + k_m, min(graph.graph[id].g, graph.graph[id].rhs))
+    return (min(graph.graph[id].g, graph.graph[id].rhs) + heuristic_from_s(graph, id, s_current) , min(graph.graph[id].g, graph.graph[id].rhs))
 
 
 def updateVertex(graph, queue, id, s_current, k_m):
+    # print("Update", id)
     s_goal = graph.goal
     if id != s_goal:
         min_rhs = float('inf')
@@ -40,17 +41,18 @@ def updateVertex(graph, queue, id, s_current, k_m):
 
 
 def computeShortestPath(graph, queue, s_start, k_m):
-    while (graph.graph[s_start].rhs != graph.graph[s_start].g) or (topKey(queue) < calculateKey(graph, s_start, s_start, k_m)):
+    while (graph.graph[s_start].rhs != graph.graph[s_start].g or topKey(queue, graph, s_start) < calculateKey(graph, s_start, s_start, k_m)):
         # print(graph.graph[s_start])
         # print('topKey')
         # print(topKey(queue))
         # print('calculateKey')
         # print(calculateKey(graph, s_start, 0))
-        k_old = topKey(queue)
+        k_old = topKey(queue, graph, s_start)
         u = heapq.heappop(queue)[2]
-        if k_old < calculateKey(graph, u, s_start, k_m):
-            heapq.heappush(queue, calculateKey(graph, u, s_start, k_m) + (u,))
-        elif graph.graph[u].g > graph.graph[u].rhs:
+        # if k_old < calculateKey(graph, u, s_start, k_m):
+        #     heapq.heappush(queue, calculateKey(graph, u, s_start, k_m) + (u,))
+        # elif graph.graph[u].g > graph.graph[u].rhs:
+        if graph.graph[u].g > graph.graph[u].rhs:
             graph.graph[u].g = graph.graph[u].rhs
             for i in graph.graph[u].parents:
                 updateVertex(graph, queue, i, s_start, k_m)
@@ -129,6 +131,10 @@ def moveAndRescan(graph, queue, s_current, scan_range, k_m):
     if(s_current == graph.goal):
         return 'goal', k_m
     else:
+        results = scanForObstacles(graph, queue, s_current, scan_range, k_m)
+        k_m += heuristic_from_s(graph, s_current, graph.goal)
+        computeShortestPath(graph, queue, s_current, k_m)
+
         s_last = s_current
         s_new = nextInShortestPath(graph, s_current)
         new_coords = stateNameToCoords(s_new)
@@ -136,7 +142,7 @@ def moveAndRescan(graph, queue, s_current, scan_range, k_m):
         if(graph.cells[new_coords[1]][new_coords[0]] == -1):  # just ran into new obstacle
             s_new = s_current  # need to hold tight and scan/replan first
 
-        results = scanForObstacles(graph, queue, s_new, scan_range, k_m)
+        
         # print(graph)
         k_m += heuristic_from_s(graph, s_last, s_new)
         computeShortestPath(graph, queue, s_current, k_m)
