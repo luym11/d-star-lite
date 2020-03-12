@@ -31,41 +31,29 @@ HEIGHT = 40
 # This sets the margin between each cell
 MARGIN = 5
 
-# Initialize pygame
-pygame.init()
+# # Initialize pygame
+# pygame.init()
 
 X_DIM = 20
 Y_DIM = 20
-VIEWING_RANGE = 2
+VIEWING_RANGE = 5
 FIRSTTIME_VIEWING_RANGE = 20
-EPISODE_NUMBER= 12
 
-# Set the HEIGHT and WIDTH of the screen
-WINDOW_SIZE = [(WIDTH + MARGIN) * X_DIM + MARGIN,
-               (HEIGHT + MARGIN) * Y_DIM + MARGIN]
-screen = pygame.display.set_mode(WINDOW_SIZE)
+# # Set the HEIGHT and WIDTH of the screen
+# WINDOW_SIZE = [(WIDTH + MARGIN) * X_DIM + MARGIN,
+#                (HEIGHT + MARGIN) * Y_DIM + MARGIN]
+# screen = pygame.display.set_mode(WINDOW_SIZE)
 
 # Set title of screen
-pygame.display.set_caption("D* Lite Path Planning")
+# pygame.display.set_caption("D* Lite Path Planning")
 
 # Loop until the user clicks the close button.
 done = False
 
 # Used to manage how fast the screen updates
-clock = pygame.time.Clock()
+# clock = pygame.time.Clock()
 
 if __name__ == "__main__":
-    graph = GridWorld(X_DIM, Y_DIM)
-    s_start = 'x8y7' # actually (8,8), do this because of the moveAndRescan function
-    s_goal = 'x8y16'
-    goal_coords = stateNameToCoords(s_goal)
-
-    graph.setStart(s_start)
-    graph.setGoal(s_goal)
-    k_m = 0
-    s_last = s_start
-    queue = []
-
     # add static obstacles
     Wall = [[6,0],
             [6,1],
@@ -98,34 +86,45 @@ if __name__ == "__main__":
             [17,12],
             [17,13]]
     wallArray = np.array(Wall)
-    for i in range(len(Wall)):
-        graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
 
     # add evolving fire initial locations
     Fire = [[9,12],[3,6],[7,9],[7,10],[8,10]] # hard coded the observed fire
     initFireArray = np.array(Fire)
-    for i in range(len(Fire)):
-        graph.cells[initFireArray[i][1]][initFireArray[i][0]] = -1
 
     monteCarloFireMap = pickle.load(open('MCFS_cur', "rb"))
     monteCarloFireMapArray = np.array(monteCarloFireMap)
-    
-    graph, queue, k_m = initDStarLite(graph, queue, s_start, s_goal, k_m)
 
-    s_current = s_start
-    pos_coords = stateNameToCoords(s_current)
-
-    basicfont = pygame.font.SysFont('Comic Sans MS', 36)
+    # basicfont = pygame.font.SysFont('Comic Sans MS', 36)
     
-    spaceCounter = 0
-    firstTimeScanFlag = 1
-    # -------- Main Program Loop -----------
-    while not done:
-        for event in pygame.event.get():  # User did something
-            if event.type == pygame.QUIT:  # If user clicked close
-                done = True  # Flag that we are done so we exit this loop
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                # print('space bar! call next action')
+    successCounter = 0
+    runCounter = 0
+    for EPISODE_NUMBER in range(len(monteCarloFireMap)):
+        runCounter += 1
+        try:
+            done = False
+            graph = GridWorld(X_DIM, Y_DIM)
+            s_start = 'x8y7' # actually (8,8), do this because of the moveAndRescan function
+            s_goal = 'x8y16'
+            goal_coords = stateNameToCoords(s_goal)
+
+            graph.setStart(s_start)
+            graph.setGoal(s_goal)
+            k_m = 0
+            s_last = s_start
+            queue = []
+
+            for i in range(len(Wall)):
+                graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
+            for i in range(len(Fire)):
+                graph.cells[initFireArray[i][1]][initFireArray[i][0]] = -1
+
+            graph, queue, k_m = initDStarLite(graph, queue, s_start, s_goal, k_m)
+            s_current = s_start
+            pos_coords = stateNameToCoords(s_current)
+            spaceCounter = 0
+            firstTimeScanFlag = 1
+            # -------- Main Program Loop -----------
+            while not done:
                 if firstTimeScanFlag == 1:
                     fireArray = initFireArray
                 else:
@@ -155,67 +154,13 @@ if __name__ == "__main__":
                 if s_new == 'goal':
                     print('Goal Reached!')
                     done = True
+                    successCounter += 1
                 else:
                     # print('setting s_current to ', s_new)
                     s_current = s_new
                     pos_coords = stateNameToCoords(s_current)
                     # print('got pos coords: ', pos_coords)
-
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # User clicks the mouse. Get the position
-                pos = pygame.mouse.get_pos()
-                # Change the x/y screen coordinates to grid coordinates
-                column = pos[0] // (WIDTH + MARGIN)
-                row = pos[1] // (HEIGHT + MARGIN)
-                # Set that location to one
-                if(graph.cells[row][column] == 0):
-                    graph.cells[row][column] = -1
-
-        # Set the screen background
-        screen.fill(BLACK)
-
-        # Draw the grid
-        for row in range(Y_DIM):
-            for column in range(X_DIM):
-                color = WHITE
-                # if grid[row][column] == 1:
-                #     color = GREEN
-                pygame.draw.rect(screen, colors[graph.cells[row][column]],
-                                 [(MARGIN + WIDTH) * column + MARGIN,
-                                  (MARGIN + HEIGHT) * row + MARGIN, WIDTH, HEIGHT])
-                node_name = 'x' + str(column) + 'y' + str(row)
-                if(graph.graph[node_name].g != float('inf')):
-                    # text = basicfont.render(
-                    # str(graph.graph[node_name].g), True, (0, 0, 200), (255,
-                    # 255, 255))
-                    text = basicfont.render(
-                        str(graph.graph[node_name].g), True, (0, 0, 200))
-                    textrect = text.get_rect()
-                    textrect.centerx = int(
-                        column * (WIDTH + MARGIN) + WIDTH / 2) + MARGIN
-                    textrect.centery = int(
-                        row * (HEIGHT + MARGIN) + HEIGHT / 2) + MARGIN
-                    screen.blit(text, textrect)
-
-        # fill in goal cell with GREEN
-        pygame.draw.rect(screen, GREEN, [(MARGIN + WIDTH) * goal_coords[0] + MARGIN,
-                                         (MARGIN + HEIGHT) * goal_coords[1] + MARGIN, WIDTH, HEIGHT])
-        # print('drawing robot pos_coords: ', pos_coords)
-        # draw moving robot, based on pos_coords
-        robot_center = [int(pos_coords[0] * (WIDTH + MARGIN) + WIDTH / 2) +
-                        MARGIN, int(pos_coords[1] * (HEIGHT + MARGIN) + HEIGHT / 2) + MARGIN]
-        pygame.draw.circle(screen, RED, robot_center, int(WIDTH / 2) - 2)
-
-        # draw robot viewing range
-        pygame.draw.rect(
-            screen, BLUE, [robot_center[0] - VIEWING_RANGE * (WIDTH + MARGIN), robot_center[1] - VIEWING_RANGE * (HEIGHT + MARGIN), 2 * VIEWING_RANGE * (WIDTH + MARGIN), 2 * VIEWING_RANGE * (HEIGHT + MARGIN)], 2)
-
-        # Limit to 60 frames per second
-        clock.tick(20)
-
-        # Go ahead and update the screen with what we've drawn.
-        pygame.display.flip()
-
-    # Be IDLE friendly. If you forget this line, the program will 'hang'
-    # on exit.
-    pygame.quit()
+        except:
+            pass
+    print(successCounter/len(monteCarloFireMap))
+    print(runCounter)

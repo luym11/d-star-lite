@@ -68,7 +68,8 @@ def nextInShortestPath(graph, s_current):
     min_rhs = float('inf')
     s_next = None
     if graph.graph[s_current].rhs == float('inf'):
-        print('You are done stuck')
+        # print('You are done stuck')
+        pass
     else:
         for i in graph.graph[s_current].children:
             # print(i)
