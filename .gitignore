@@ -1,2 +1,8 @@
 __pycache__
 *.pyc
+
+.DS_Store
+
+MCFS_cur
+
+MCFMs1000
