@@ -69,8 +69,8 @@ clock = pygame.time.Clock()
 
 if __name__ == "__main__":
     graph = GridWorld(X_DIM, Y_DIM)
-    s_start = 'x8y0'
-    s_goal = 'x9y16'
+    s_start = 'x8y8'
+    s_goal = 'x8y16'
     goal_coords = stateNameToCoords(s_goal)
 
     graph.setStart(s_start)
@@ -115,12 +115,12 @@ if __name__ == "__main__":
     #     graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
 
     # add evolving fire initial locations
-    Fire = [[1, 18], [7,11],[2,4]]
+    Fire = [[9, 12], [3,6]]
     fireArray = np.array(Fire)
     for i in range(len(Fire)):
         graph.cells[fireArray[i,1]][fireArray[i,0]] = -1
 
-    monteCarloFireMap = pickle.load(open('MCFMs300', "rb"))
+    monteCarloFireMap = pickle.load(open('MCFS_cur', "rb"))
     monteCarloFireMapArray = np.array(monteCarloFireMap)
     
     graph, queue, k_m = initDStarLite(graph, queue, s_start, s_goal, k_m)
