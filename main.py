@@ -31,27 +31,14 @@ HEIGHT = 40
 # This sets the margin between each cell
 MARGIN = 5
 
-# Create a 2 dimensional array. A two dimensional
-# array is simply a list of lists.
-grid = []
-for row in range(10):
-    # Add an empty array that will hold each cell
-    # in this row
-    grid.append([])
-    for column in range(10):
-        grid[row].append(0)  # Append a cell
-
-# Set row 1, cell 5 to one. (Remember rows and
-# column numbers start at zero.)
-grid[1][5] = 1
-
 # Initialize pygame
 pygame.init()
 
 X_DIM = 20
 Y_DIM = 20
 VIEWING_RANGE = 2
-EPISODE_NUMBER= 49
+FIRSTTIME_VIEWING_RANGE = 20
+EPISODE_NUMBER= 12
 
 # Set the HEIGHT and WIDTH of the screen
 WINDOW_SIZE = [(WIDTH + MARGIN) * X_DIM + MARGIN,
@@ -69,7 +56,7 @@ clock = pygame.time.Clock()
 
 if __name__ == "__main__":
     graph = GridWorld(X_DIM, Y_DIM)
-    s_start = 'x8y8'
+    s_start = 'x8y7' # actually (8,8), do this because of the moveAndRescan function
     s_goal = 'x8y16'
     goal_coords = stateNameToCoords(s_goal)
 
@@ -80,45 +67,45 @@ if __name__ == "__main__":
     queue = []
 
     # add static obstacles
-    # Wall = [[6,0],
-    #         [6,1],
-    #         [6,2],
-    #         [6,3],
-    #         [6,4],
-    #         [6,5],
-    #         [10,0],
-    #         [10,1],
-    #         [10,2],
-    #         [10,3],
-    #         [10,4],
-    #         [10,5],
-    #         [6,14],
-    #         [7,14],
-    #         [8,14],
-    #         [9,14],
-    #         [10,14],
-    #         [11,14],
-    #         [12,14],
-    #         [13,14],
-    #         [15,14],
-    #         [16,14],
-    #         [17,14],
-    #         [18,14],
-    #         [19,14],
-    #         [17,9],
-    #         [17,10],
-    #         [17,11],
-    #         [17,12],
-    #         [17,13]]
-    # wallArray = np.array(Wall)
-    # for i in range(len(Wall)):
-    #     graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
+    Wall = [[6,0],
+            [6,1],
+            [6,2],
+            [6,3],
+            [6,4],
+            [6,5],
+            [10,0],
+            [10,1],
+            [10,2],
+            [10,3],
+            [10,4],
+            [10,5],
+            [6,14],
+            [7,14],
+            [8,14],
+            [9,14],
+            [10,14],
+            [11,14],
+            [12,14],
+            [13,14],
+            [15,14],
+            [16,14],
+            [17,14],
+            [18,14],
+            [19,14],
+            [17,9],
+            [17,10],
+            [17,11],
+            [17,12],
+            [17,13]]
+    wallArray = np.array(Wall)
+    for i in range(len(Wall)):
+        graph.cells[wallArray[i,1]][wallArray[i,0]] = -1
 
     # add evolving fire initial locations
-    Fire = [[9, 12], [3,6]]
-    fireArray = np.array(Fire)
+    Fire = [[9,12],[3,6],[7,9],[7,10],[8,10]] # hard coded the observed fire
+    initFireArray = np.array(Fire)
     for i in range(len(Fire)):
-        graph.cells[fireArray[i,1]][fireArray[i,0]] = -1
+        graph.cells[initFireArray[i][1]][initFireArray[i][0]] = -1
 
     monteCarloFireMap = pickle.load(open('MCFS_cur', "rb"))
     monteCarloFireMapArray = np.array(monteCarloFireMap)
@@ -131,6 +118,7 @@ if __name__ == "__main__":
     basicfont = pygame.font.SysFont('Comic Sans MS', 36)
     
     spaceCounter = 0
+    firstTimeScanFlag = 1
     # -------- Main Program Loop -----------
     while not done:
         for event in pygame.event.get():  # User did something
@@ -138,14 +126,32 @@ if __name__ == "__main__":
                 done = True  # Flag that we are done so we exit this loop
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 # print('space bar! call next action')
-                fireArray = np.nonzero(np.array(monteCarloFireMapArray[EPISODE_NUMBER][spaceCounter]))
-                for i in range(len(fireArray[0])):
-                    try:
-                        graph.cells[fireArray[1][i]][fireArray[0][i]] = -1
-                    except:
-                        print("coordinates are [{0}, {1}]".format(fireArray[i][1],fireArray[i][0]))
-                s_new, k_m = moveAndRescan(
-                    graph, queue, s_current, VIEWING_RANGE, k_m)
+                if firstTimeScanFlag == 1:
+                    fireArray = initFireArray
+                else:
+                    fireArray = np.nonzero(monteCarloFireMapArray[EPISODE_NUMBER][spaceCounter])
+                    spaceCounter += 1
+                if firstTimeScanFlag == 1:
+                    for i in range(len(fireArray)):
+                        try:
+                            graph.cells[fireArray[i][1]][fireArray[i][0]] = -1
+                        except:
+                            print("coordinates are [{0}, {1}]".format(fireArray[i][1],fireArray[i][0]))
+                            print("length of fireArray is {0}".format(len(fireArray)))
+                else:
+                    for i in range(len(fireArray[0])):
+                        try:
+                            graph.cells[fireArray[1][i]][fireArray[0][i]] = -1
+                        except:
+                            print("coordinates are [{0}, {1}]".format(fireArray[i][1],fireArray[i][0]))
+                            print("length of fireArray is {0}".format(len(fireArray)))
+                if firstTimeScanFlag == 1:
+                    s_new, k_m = moveAndRescan(
+                        graph, queue, s_current, FIRSTTIME_VIEWING_RANGE, k_m)
+                    firstTimeScanFlag = 0
+                else:
+                    s_new, k_m = moveAndRescan(
+                        graph, queue, s_current, VIEWING_RANGE, k_m)
                 if s_new == 'goal':
                     print('Goal Reached!')
                     done = True
@@ -154,7 +160,6 @@ if __name__ == "__main__":
                     s_current = s_new
                     pos_coords = stateNameToCoords(s_current)
                     # print('got pos coords: ', pos_coords)
-                spaceCounter += 1
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # User clicks the mouse. Get the position

@@ -77,22 +77,22 @@ def makeGraph():
 
     # 8-connected graph (w diagonals)
     # Impossible to find path - 2 obstacles in middle
-    # graph = addNodeToGraph(graph, 'x1y1', ['x1y2', 'x2y1', 'x2y2'])
-    # graph = addNodeToGraph(
-    #     graph, 'x2y1', ['x1y1', 'x1y2', 'x3y1', 'x2y2', 'x3y2'], float('inf'))
-    # graph = addNodeToGraph(graph, 'x1y2', ['x1y1', 'x2y1', 'x2y2'])
-    # graph = addNodeToGraph(
-    #     graph, 'x2y2', ['x1y1', 'x1y2', 'x3y1', 'x2y1', 'x3y2'])
-    # graph = addNodeToGraph(graph, 'x3y1', ['x3y2', 'x2y1', 'x2y2'])
-    # graph = addNodeToGraph(graph, 'x3y2', ['x3y1', 'x2y1', 'x2y2'])
+    graph = addNodeToGraph(graph, 'x1y1', ['x1y2', 'x2y1', 'x2y2'])
+    graph = addNodeToGraph(
+        graph, 'x2y1', ['x1y1', 'x1y2', 'x3y1', 'x2y2', 'x3y2'], float('inf'))
+    graph = addNodeToGraph(graph, 'x1y2', ['x1y1', 'x2y1', 'x2y2'])
+    graph = addNodeToGraph(
+        graph, 'x2y2', ['x1y1', 'x1y2', 'x3y1', 'x2y1', 'x3y2'])
+    graph = addNodeToGraph(graph, 'x3y1', ['x3y2', 'x2y1', 'x2y2'])
+    graph = addNodeToGraph(graph, 'x3y2', ['x3y1', 'x2y1', 'x2y2'])
 
     # 4-connected graph (w/out diagonals)
-    graph = addNodeToGraph(graph, 'x1y1', ['x1y2', 'x2y1'])
-    graph = addNodeToGraph(graph, 'x2y1', ['x1y1', 'x3y1', 'x2y2'])
-    graph = addNodeToGraph(graph, 'x1y2', ['x1y1', 'x2y2'])
-    graph = addNodeToGraph(graph, 'x2y2', ['x1y2', 'x2y1', 'x3y2'])
-    graph = addNodeToGraph(graph, 'x3y1', ['x3y2', 'x2y1'])
-    graph = addNodeToGraph(graph, 'x3y2', ['x3y1', 'x2y2'])
+    # graph = addNodeToGraph(graph, 'x1y1', ['x1y2', 'x2y1'])
+    # graph = addNodeToGraph(graph, 'x2y1', ['x1y1', 'x3y1', 'x2y2'])
+    # graph = addNodeToGraph(graph, 'x1y2', ['x1y1', 'x2y2'])
+    # graph = addNodeToGraph(graph, 'x2y2', ['x1y2', 'x2y1', 'x3y2'])
+    # graph = addNodeToGraph(graph, 'x3y1', ['x3y2', 'x2y1'])
+    # graph = addNodeToGraph(graph, 'x3y2', ['x3y1', 'x2y2'])
 
     g = GridWorld(X_DIM, Y_DIM)
     # g.graph = graph
