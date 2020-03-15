@@ -13,10 +13,10 @@ def topKey(queue, graph, s_current):
 
 
 def heuristic_from_s(graph, id, s):
-    x_distance = abs(int(id.split('x')[1][0]) - int(s.split('x')[1][0]))
-    y_distance = abs(int(id.split('y')[1][0]) - int(s.split('y')[1][0]))
-    return max(x_distance, y_distance)
-
+    # x_distance = abs(int(id.split('x')[1][0]) - int(s.split('x')[1][0]))
+    # y_distance = abs(int(id.split('y')[1][0]) - int(s.split('y')[1][0]))
+    # return max(x_distance, y_distance)
+    return 0
 
 def calculateKey(graph, id, s_current, k_m):
     return (min(graph.graph[id].g, graph.graph[id].rhs) + heuristic_from_s(graph, id, s_current) , min(graph.graph[id].g, graph.graph[id].rhs))
